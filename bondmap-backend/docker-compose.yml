@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: bondmap-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bondmap}
+      POSTGRES_USER: ${POSTGRES_USER:-bondmap}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bondmap_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bondmap} -d ${POSTGRES_DB:-bondmap}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build: .
+    container_name: bondmap-backend
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      PORT: 8080
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-bondmap}
+      DATABASE_USERNAME: ${POSTGRES_USER:-bondmap}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-bondmap_password}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

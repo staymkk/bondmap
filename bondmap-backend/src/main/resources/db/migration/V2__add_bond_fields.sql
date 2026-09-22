@@ -1,0 +1,4 @@
+ALTER TABLE bonds
+    ADD COLUMN maturity_date DATE,
+ADD COLUMN currency VARCHAR(10) NOT NULL DEFAULT 'RUB',
+ADD COLUMN coupon_period_days INTEGER;

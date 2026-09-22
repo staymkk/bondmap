@@ -1,0 +1,16 @@
+.gradle
+build
+.idea
+.kotlin
+.git
+.gitignore
+*.iml
+*.iws
+*.ipr
+HELP.md
+out
+bin
+.env
+.vscode
+**/build/
+**/bin/

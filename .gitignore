@@ -1,0 +1,14 @@
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# build artifacts that may sit outside module gitignores
+**/build/
+**/.gradle/
+**/.kotlin/
+
+# secrets / machine-local
+**/.env
+!**/.env.example
+**/local.properties

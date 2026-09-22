@@ -1,0 +1,2 @@
+ALTER TABLE bonds
+    ADD COLUMN current_price DOUBLE PRECISION;
