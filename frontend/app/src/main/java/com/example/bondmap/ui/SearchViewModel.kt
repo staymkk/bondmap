@@ -12,6 +12,10 @@ import kotlinx.coroutines.launch
 data class SearchUiState(
     val loading: Boolean = false,
     val currency: String = "",
+    val isin: String = "",
+    val name: String = "",
+    val maturityFrom: String = "",
+    val maturityTo: String = "",
     val minYield: String = "",
     val maxYield: String = "",
     val sort: String = "yield_desc",
@@ -29,6 +33,22 @@ class SearchViewModel(
 
     fun updateCurrency(value: String) {
         _state.value = _state.value.copy(currency = value)
+    }
+
+    fun updateIsin(value: String) {
+        _state.value = _state.value.copy(isin = value)
+    }
+
+    fun updateName(value: String) {
+        _state.value = _state.value.copy(name = value)
+    }
+
+    fun updateMaturityFrom(value: String) {
+        _state.value = _state.value.copy(maturityFrom = value)
+    }
+
+    fun updateMaturityTo(value: String) {
+        _state.value = _state.value.copy(maturityTo = value)
     }
 
     fun updateMinYield(value: String) {
@@ -50,6 +70,10 @@ class SearchViewModel(
             try {
                 val results = repository.search(
                     currency = current.currency.trim().ifBlank { null },
+                    isin = current.isin.trim().ifBlank { null },
+                    name = current.name.trim().ifBlank { null },
+                    maturityFrom = toIsoDate(current.maturityFrom),
+                    maturityTo = toIsoDate(current.maturityTo),
                     minYield = current.minYield.trim().toDoubleOrNull(),
                     maxYield = current.maxYield.trim().toDoubleOrNull(),
                     sort = current.sort.ifBlank { null }
@@ -69,5 +93,10 @@ class SearchViewModel(
                 )
             }
         }
+    }
+
+    private fun toIsoDate(raw: String): String? {
+        val trimmed = raw.trim().ifBlank { return null }
+        return parseDate(trimmed)?.toString() ?: trimmed
     }
 }

@@ -1,36 +1,31 @@
 package com.example.bondmap.ui.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.bondmap.data.BondAnalyticsDto
 import com.example.bondmap.data.ScenarioDto
+import com.example.bondmap.ui.components.neu.NeuPill
+import com.example.bondmap.ui.components.neu.NeuPillRow
+import com.example.bondmap.ui.components.neu.NeuSurface
+import com.example.bondmap.ui.formatPercent
+import com.example.bondmap.ui.formatSignedPp
 import com.example.bondmap.ui.theme.BondMapColors
-import com.example.bondmap.ui.theme.CardShape
 
 @Composable
 fun AnalyticsSection(analytics: BondAnalyticsDto?) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(BondMapColors.Surface, CardShape)
-            .padding(16.dp)
-    ) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Рыночный контекст",
             style = MaterialTheme.typography.titleLarge,
@@ -39,13 +34,20 @@ fun AnalyticsSection(analytics: BondAnalyticsDto?) {
         Spacer(modifier = Modifier.height(12.dp))
 
         if (analytics == null) {
-            Text(
-                text = "Аналитика недоступна",
-                style = MaterialTheme.typography.bodyMedium,
-                color = BondMapColors.TextSecondary
-            )
+            NeuSurface(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Аналитика недоступна",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = BondMapColors.TextSecondary,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
             return
         }
+
+        val spread = analytics.displaySpread()
+        val spreadPositive = (spread ?: 0.0) > 0
+        val spreadNegative = (spread ?: 0.0) < 0
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -53,22 +55,24 @@ fun AnalyticsSection(analytics: BondAnalyticsDto?) {
         ) {
             AnalyticMetric(
                 label = "Ключевая ставка",
-                value = analytics.keyRate?.let { String.format("%.1f%%", it) } ?: "—",
-                caption = analytics.keyRateDate,
+                value = formatPercent(analytics.displayBaseRate(), 1),
+                caption = analytics.baseRateDate ?: analytics.keyRateDate,
+                hint = TermHints.baseRate,
                 modifier = Modifier.weight(1f)
             )
             AnalyticMetric(
                 label = "Спред",
-                value = analytics.spreadToKeyRate?.let { String.format("%+.2f п.п.", it) } ?: "—",
+                value = formatSignedPp(spread),
                 caption = "yield − key rate",
-                accent = true,
+                hint = TermHints.spread,
+                accent = spreadPositive,
+                danger = spreadNegative,
                 modifier = Modifier.weight(1f)
             )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScenarioSection(
     selectedShockBp: Int,
@@ -76,86 +80,88 @@ fun ScenarioSection(
     loading: Boolean,
     onSelectShock: (Int) -> Unit
 ) {
-    val shocks = listOf(-100, -50, 50, 100, 200)
+    val shocks = listOf(-100, -50, 50, 100)
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(BondMapColors.Surface, CardShape)
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Сценарий ставки",
-            style = MaterialTheme.typography.titleLarge,
-            color = BondMapColors.TextPrimary
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Оценка влияния шока доходности на цену",
-            style = MaterialTheme.typography.labelMedium,
-            color = BondMapColors.TextSecondary
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            shocks.forEach { bp ->
-                FilterChip(
-                    selected = selectedShockBp == bp,
-                    onClick = { onSelectShock(bp) },
-                    label = {
-                        Text(if (bp > 0) "+$bp б.п." else "$bp б.п.")
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = BondMapColors.AccentSoft,
-                        selectedLabelColor = BondMapColors.Accent
-                    )
+    NeuSurface(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Сценарий ставки",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = BondMapColors.TextPrimary,
+                    modifier = Modifier.weight(1f)
                 )
+                InfoHintButton(hint = TermHints.scenario)
             }
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        when {
-            loading -> Text(
-                "Считаем сценарий…",
-                color = BondMapColors.TextSecondary,
-                style = MaterialTheme.typography.bodyMedium
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Оценка влияния шока доходности на цену",
+                style = MaterialTheme.typography.labelMedium,
+                color = BondMapColors.Navy
             )
-            scenario == null -> Text(
-                "Недостаточно данных (нужны цена и дата погашения)",
-                color = BondMapColors.TextSecondary,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            else -> {
-                val changeColor = when {
-                    (scenario.estimatedPriceChange ?: 0.0) >= 0 -> BondMapColors.Accent
-                    else -> BondMapColors.Danger
+            Spacer(modifier = Modifier.height(8.dp))
+
+            NeuPillRow {
+                shocks.forEach { bp ->
+                    NeuPill(
+                        label = if (bp > 0) "+$bp б.п." else "$bp б.п.",
+                        modifier = Modifier.weight(1f),
+                        selected = selectedShockBp == bp,
+                        onClick = { onSelectShock(bp) },
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp)
+                    )
                 }
-                Text(
-                    text = "Новая цена: " +
-                        (scenario.estimatedNewPrice?.let { String.format("%.2f", it) } ?: "—"),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = BondMapColors.TextPrimary
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            when {
+                loading -> Text(
+                    "Считаем сценарий…",
+                    color = BondMapColors.TextSecondary,
+                    style = MaterialTheme.typography.bodyMedium
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Изменение: " +
-                        (scenario.estimatedPriceChange?.let { String.format("%+.2f", it) } ?: "—") +
-                        " (" +
-                        (scenario.estimatedPriceChangePercent?.let { String.format("%+.2f%%", it) } ?: "—") +
-                        ")",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = changeColor
+                scenario == null -> Text(
+                    "Недостаточно данных (нужны цена и дата погашения)",
+                    color = BondMapColors.TextSecondary,
+                    style = MaterialTheme.typography.bodyMedium
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = scenario.note,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = BondMapColors.TextSecondary
-                )
+                else -> {
+                    val changeColor = when {
+                        (scenario.estimatedPriceChange ?: 0.0) >= 0 -> BondMapColors.Accent
+                        else -> BondMapColors.Danger
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Новая цена: " +
+                                (scenario.estimatedNewPrice?.let { String.format("%.2f", it) } ?: "—"),
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = BondMapColors.TextPrimary,
+                            modifier = Modifier.weight(1f)
+                        )
+                        InfoHintButton(hint = TermHints.estimatedPrice)
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Изменение: " +
+                                (scenario.estimatedPriceChange?.let { String.format("%+.2f", it) } ?: "—") +
+                                " (" +
+                                (scenario.estimatedPriceChangePercent?.let { String.format("%+.2f%%", it) } ?: "—") +
+                                ")",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = changeColor,
+                            modifier = Modifier.weight(1f)
+                        )
+                        InfoHintButton(hint = TermHints.priceChange)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = scenario.note,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = BondMapColors.Navy
+                    )
+                }
             }
         }
     }
@@ -167,32 +173,46 @@ private fun AnalyticMetric(
     value: String,
     caption: String?,
     modifier: Modifier = Modifier,
-    accent: Boolean = false
+    hint: TermHint? = null,
+    accent: Boolean = false,
+    danger: Boolean = false
 ) {
-    Column(
-        modifier = modifier
-            .background(
-                if (accent) BondMapColors.AccentSoft else BondMapColors.Canvas,
-                CardShape
-            )
-            .padding(12.dp)
+    val bg = when {
+        danger -> BondMapColors.DangerSoft
+        accent -> BondMapColors.AccentSoft
+        else -> BondMapColors.SurfaceNeu
+    }
+    val valueColor = when {
+        danger -> BondMapColors.Danger
+        accent -> BondMapColors.Accent
+        else -> BondMapColors.TextPrimary
+    }
+    NeuSurface(
+        modifier = modifier,
+        color = bg
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = BondMapColors.TextSecondary
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleLarge,
-            color = if (accent) BondMapColors.Accent else BondMapColors.TextPrimary
-        )
-        if (caption != null) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            if (hint != null) {
+                LabelWithHint(label = label, hint = hint)
+            } else {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = BondMapColors.TextSecondary
+                )
+            }
             Text(
-                text = caption,
-                style = MaterialTheme.typography.labelSmall,
-                color = BondMapColors.TextSecondary
+                text = value,
+                style = MaterialTheme.typography.titleLarge,
+                color = valueColor
             )
+            if (caption != null) {
+                Text(
+                    text = caption,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = BondMapColors.TextSecondary
+                )
+            }
         }
     }
 }

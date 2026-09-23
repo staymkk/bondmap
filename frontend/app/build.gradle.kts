@@ -15,11 +15,18 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        // 10.0.2.2 = localhost машины с хоста Android-эмулятора
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
+        // 10.0.2.2 = localhost машины с хоста Android-эмулятора.
+        // Можно переопределить: API_BASE_URL=http://192.168.0.15:8080/ ./gradlew assembleDebug
+        val apiBaseUrl = System.getenv("API_BASE_URL")
+            ?: (project.findProperty("API_BASE_URL") as String?)
+            ?: "http://10.0.2.2:8080/"
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -63,6 +70,8 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    testImplementation("junit:junit:4.13.2")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

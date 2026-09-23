@@ -25,5 +25,10 @@ class Bond(
     val currency: String = "RUB",
 
     @Column(name = "coupon_period_days")
-    val couponPeriodDays: Int? = null
+    val couponPeriodDays: Int? = null,
+
+    val isin: String = "",
+
+    @Column(name = "bond_type")
+    val bondType: String = "CORPORATE"
 )

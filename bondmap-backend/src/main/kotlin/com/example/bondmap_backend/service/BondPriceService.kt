@@ -18,39 +18,50 @@ class BondPriceService(
         bondId: Long,
         request: CreateBondPriceRequest
     ): BondPriceResponse {
-
         val bond = bondRepository.findById(bondId)
             .orElseThrow { BondNotFoundException(bondId) }
 
+        val close = request.close ?: request.price
+        val open = request.open ?: close
+        val high = request.high ?: maxOf(open, close)
+        val low = request.low ?: minOf(open, close)
+
         val bondPrice = BondPrice(
             bond = bond,
-            price = request.price,
-            priceDate = request.priceDate
+            price = close,
+            priceDate = request.priceDate,
+            openPrice = open,
+            highPrice = high,
+            lowPrice = low,
+            closePrice = close,
+            volume = request.volume,
+            source = BondCalculator.SIMULATION_SOURCE
         )
 
-        return toResponse(
-            bondPriceRepository.save(bondPrice)
-        )
+        return toResponse(bondPriceRepository.save(bondPrice))
     }
 
-
-    private fun toResponse(
-        bondPrice: BondPrice
-    ): BondPriceResponse {
-
-        return BondPriceResponse(
-            id = bondPrice.id!!,
-            price = bondPrice.price,
-            priceDate = bondPrice.priceDate
-        )
-    }
     fun getHistory(bondId: Long): List<BondPriceResponse> {
-
         if (!bondRepository.existsById(bondId)) {
             throw BondNotFoundException(bondId)
         }
 
-        return bondPriceRepository.findAllByBondId(bondId)
+        return bondPriceRepository.findAllByBondIdOrderByPriceDateAsc(bondId)
             .map { toResponse(it) }
+    }
+
+    private fun toResponse(bondPrice: BondPrice): BondPriceResponse {
+        val close = bondPrice.close()
+        return BondPriceResponse(
+            id = bondPrice.id!!,
+            price = close,
+            priceDate = bondPrice.priceDate,
+            open = bondPrice.open(),
+            high = bondPrice.high(),
+            low = bondPrice.low(),
+            close = close,
+            volume = bondPrice.volume,
+            source = bondPrice.source.ifBlank { BondCalculator.SIMULATION_SOURCE }
+        )
     }
 }

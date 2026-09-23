@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
@@ -28,6 +29,7 @@ import com.example.bondmap.ui.theme.BondMapColors
 fun BondListScreen(
     onOpenDetails: (Long) -> Unit,
     onOpenSearch: () -> Unit,
+    onOpenAbout: () -> Unit,
     viewModel: BondListViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -55,6 +57,13 @@ fun BondListScreen(
                         tint = BondMapColors.TextOnNavy
                     )
                 }
+                IconButton(onClick = onOpenAbout) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "О данных",
+                        tint = BondMapColors.TextOnNavy
+                    )
+                }
             }
         )
 
@@ -71,15 +80,15 @@ fun BondListScreen(
             else -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 10.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 18.dp)
                 ) {
                     items(state.bonds, key = { it.id }) { bond ->
                         BondCard(
                             name = bond.name,
-                            ticker = bond.ticker,
+                            ticker = bond.displayIsin(),
                             currency = bond.currency,
                             price = bond.currentPrice,
-                            yieldPercent = bond.currentYield,
+                            yieldPercent = bond.displayYield(),
                             maturityDate = bond.maturityDate,
                             onClick = { onOpenDetails(bond.id) }
                         )

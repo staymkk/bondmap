@@ -16,7 +16,12 @@ interface BondApi {
 
     @GET("api/bonds/search")
     suspend fun searchBonds(
+        @Query("query") query: String? = null,
         @Query("currency") currency: String? = null,
+        @Query("isin") isin: String? = null,
+        @Query("name") name: String? = null,
+        @Query("maturityFrom") maturityFrom: String? = null,
+        @Query("maturityTo") maturityTo: String? = null,
         @Query("minYield") minYield: Double? = null,
         @Query("maxYield") maxYield: Double? = null,
         @Query("sort") sort: String? = null

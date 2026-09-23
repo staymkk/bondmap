@@ -6,58 +6,36 @@ import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
 import java.time.LocalDate
 
-
 data class UpdateBondRequest(
 
     @field:NotBlank
-    @Schema(
-        example = "RU000A1038V6"
-    )
+    @Schema(example = "26243")
     val ticker: String,
 
+    @Schema(example = "RU000A1038V6")
+    val isin: String? = null,
 
     @field:NotBlank
-    @Schema(
-        example = "Газпромбанк БО-001Р-25"
-    )
+    @Schema(example = "ОФЗ-ПД 26243")
     val name: String,
 
+    @Schema(example = "GOVERNMENT")
+    val type: String? = null,
 
     @field:Positive
-    @Schema(
-        example = "1000"
-    )
+    @Schema(example = "1000")
     val nominal: Double,
 
-
     @field:PositiveOrZero
-    @Schema(
-        example = "15.5"
-    )
+    @Schema(example = "14.0")
     val couponRate: Double,
 
-
-    @Schema(
-        example = "2030-12-15"
-    )
+    @Schema(example = "2038-05-19")
     val maturityDate: LocalDate?,
 
-
-    @Schema(
-        example = "RUB"
-    )
+    @Schema(example = "RUB")
     val currency: String,
 
-
-    @Schema(
-        example = "182"
-    )
-    val couponPeriodDays: Int?,
-
-
-    @field:PositiveOrZero
-    @Schema(
-        example = "1015.4"
-    )
-    val currentPrice: Double?
+    @Schema(example = "182")
+    val couponPeriodDays: Int?
 )

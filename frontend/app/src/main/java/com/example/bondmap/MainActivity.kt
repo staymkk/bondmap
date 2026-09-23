@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.bondmap.ui.AboutDataScreen
 import com.example.bondmap.ui.BondDetailsScreen
 import com.example.bondmap.ui.BondListScreen
 import com.example.bondmap.ui.SearchScreen
@@ -38,7 +39,15 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onOpenSearch = {
                                     navController.navigate("search")
+                                },
+                                onOpenAbout = {
+                                    navController.navigate("about")
                                 }
+                            )
+                        }
+                        composable("about") {
+                            AboutDataScreen(
+                                onBack = { navController.popBackStack() }
                             )
                         }
                         composable("search") {
@@ -58,7 +67,8 @@ class MainActivity : ComponentActivity() {
                             val bondId = entry.arguments?.getLong("bondId") ?: return@composable
                             BondDetailsScreen(
                                 bondId = bondId,
-                                onBack = { navController.popBackStack() }
+                                onBack = { navController.popBackStack() },
+                                onOpenAbout = { navController.navigate("about") }
                             )
                         }
                     }

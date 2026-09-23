@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,12 +35,15 @@ import com.example.bondmap.ui.components.LoadingState
 import com.example.bondmap.ui.components.PriceChartRange
 import com.example.bondmap.ui.components.PriceChartSection
 import com.example.bondmap.ui.components.ScenarioSection
+import com.example.bondmap.ui.formatNumber
+import com.example.bondmap.ui.formatPercent
 import com.example.bondmap.ui.theme.BondMapColors
 
 @Composable
 fun BondDetailsScreen(
     bondId: Long,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onOpenAbout: () -> Unit
 ) {
     val viewModel: BondDetailsViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
@@ -58,12 +62,21 @@ fun BondDetailsScreen(
     ) {
         BondMapTopBar(
             title = "Детали",
-            subtitle = state.details?.ticker,
+            subtitle = state.details?.displayIsin() ?: state.details?.ticker,
             navigation = {
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Назад",
+                        tint = BondMapColors.TextOnNavy
+                    )
+                }
+            },
+            actions = {
+                IconButton(onClick = onOpenAbout) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "О данных",
                         tint = BondMapColors.TextOnNavy
                     )
                 }
@@ -106,16 +119,16 @@ private fun DetailsBody(
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "${details.ticker} · ${details.currency}",
+            text = "${details.displayIsin()} · ${details.currency}",
             style = MaterialTheme.typography.bodyMedium,
             color = BondMapColors.TextSecondary
         )
 
         Spacer(modifier = Modifier.height(18.dp))
         HeroMetricsRow(
-            price = details.currentPrice?.let { String.format("%.2f", it) } ?: "—",
-            yieldText = details.currentYield?.let { String.format("%.2f%%", it) } ?: "—",
-            couponText = String.format("%.1f%%", details.couponRate)
+            price = formatNumber(details.currentPrice),
+            yieldText = formatPercent(details.ytm ?: details.currentYield),
+            couponText = formatPercent(details.couponRate, 1)
         )
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -143,11 +156,11 @@ private fun DetailsBody(
             color = BondMapColors.TextPrimary
         )
         Spacer(modifier = Modifier.height(8.dp))
-        DetailParamRow("Номинал", details.nominal.toString())
+        DetailParamRow("Номинал", formatNumber(details.nominal))
         DetailParamRow("Валюта", details.currency)
         DetailParamRow(
             "Купонный доход / год",
-            String.format("%.2f", details.annualCouponIncome)
+            formatNumber(details.annualCouponIncome)
         )
 
         Spacer(modifier = Modifier.height(22.dp))
@@ -169,7 +182,7 @@ private fun DetailsBody(
                 .sortedByDescending { it.date }
                 .take(8)
                 .forEach { point ->
-                    DetailParamRow(point.date, String.format("%.2f", point.price))
+                    DetailParamRow(point.date, formatNumber(point.closePrice()))
                 }
         }
     }

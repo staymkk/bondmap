@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 
@@ -74,6 +75,7 @@ class BondController(
         description = "Облигация создана"
     )
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     fun createBond(
         @Valid
         @RequestBody request: CreateBondRequest
@@ -103,6 +105,7 @@ class BondController(
     @PutMapping("/{id}")
     fun updateBond(
         @PathVariable id: Long,
+        @Valid
         @RequestBody request: UpdateBondRequest
     ): BondResponse {
 

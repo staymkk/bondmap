@@ -10,11 +10,26 @@ class BondRepository(
     suspend fun getDetails(id: Long): BondDetailsDto = api.getBondDetails(id)
 
     suspend fun search(
-        currency: String?,
-        minYield: Double?,
-        maxYield: Double?,
-        sort: String?
-    ): List<BondSearchDto> = api.searchBonds(currency, minYield, maxYield, sort)
+        query: String? = null,
+        currency: String? = null,
+        isin: String? = null,
+        name: String? = null,
+        maturityFrom: String? = null,
+        maturityTo: String? = null,
+        minYield: Double? = null,
+        maxYield: Double? = null,
+        sort: String? = null
+    ): List<BondSearchDto> = api.searchBonds(
+        query = query,
+        currency = currency,
+        isin = isin,
+        name = name,
+        maturityFrom = maturityFrom,
+        maturityTo = maturityTo,
+        minYield = minYield,
+        maxYield = maxYield,
+        sort = sort
+    )
 
     suspend fun getAnalytics(id: Long): BondAnalyticsDto = api.getAnalytics(id)
 

@@ -8,5 +8,7 @@ interface BondPriceRepository :
 
     fun findAllByBondId(bondId: Long): List<BondPrice>
 
+    fun findAllByBondIdOrderByPriceDateAsc(bondId: Long): List<BondPrice>
+
     fun findTopByBondIdOrderByPriceDateDesc(bondId: Long): BondPrice?
 }
